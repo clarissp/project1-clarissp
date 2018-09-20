@@ -20,19 +20,10 @@ header <- dashboardHeader(title = "NYC Intimate Partner Violence Dashboard",
                           #Creates the content for the notifications menu
                           dropdownMenu(type = "notifications",
                                        notificationItem(text = "Data updated on September 6, 2018", 
-                                                        icon = icon("life-ring")
+                                                        icon = icon("database")
                                                         ),
-                                       notificationItem(text = "BXJIA indicates a Bronx joing Area of Interest",
-                                                        icon = icon("users")
-                                                        ),
-                                       notificationItem(text = "MNJIA indicates a Manhattan Join Area of Interest",
-                                                        icon = icon("users")
-                                                        ),
-                                       notificationItem(text = "QNJIA indicates a Queens Join Area of Interest",
-                                                        icon = icon("users")
-                                       ),
-                                       notificationItem(text = "SIJIA indicates a Staten Island Join Area of Interest",
-                                                        icon = icon("users")
+                                       notificationItem(text = "Joint Interest Areas removed from data", 
+                                                        icon = icon("scissors")
                                        )
                           ),
                           dropdownMenu(type = "tasks", badgeStatus = "success",
@@ -43,13 +34,13 @@ header <- dashboardHeader(title = "NYC Intimate Partner Violence Dashboard",
                           dropdownMenu(type = "messages",
                                        messageItem(
                                          from = "NYC Open Data",
-                                         message = "This data is collected by The Mayor's Office to Combat Domestic Violence",
-                                         icon = icon("life-ring"),
+                                         message = HTML("This data is collected by The Mayor's <br> Office to Combat Domestic Violence"),
+                                         icon = icon("institution"),
                                          time = "3:55"
                                          ),
                                        messageItem(
                                          from = "New User",
-                                         message = "Is it possible to get notified when the data is updated?",
+                                         message = HTML("Is it possible to get notified when <br> the data is updated?"),
                                          icon = icon("question"),
                                          time = "4:00"
                                        )
@@ -98,11 +89,18 @@ server <- function(input, output) {
     return(partner)
   })
   
-  #Bar plot code
+  #Bar plot for felony assault that involved a family member by borough 
   output$barplot <- renderPlotly({
     partner <- partnerInput()
-    ggplot(data = partner, aes(x = Comm_Dist_.Boro, y =IPV_DIR)) +
+    ggplot(data = partner, aes(x = Comm_Dist_.Boro, y =IPV_Fel_Assault)) +
       geom_bar(stat="identity")
+  })
+  
+  #Box plot for rape that involved a family member by borough 
+  output$boxplot <- renderPlotly({
+    partner <- partnerInput()
+    ggplot(data = partner) +
+      geom_boxplot(mapping = aes(x= Comm_Dist_.Boro, y = IPV_Rape))
   })
   
 
