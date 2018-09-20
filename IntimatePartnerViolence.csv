@@ -1,0 +1,66 @@
+Comm_Dist_ Boro,Comm_District,IPV_DIR,IPV_Fel_Assault ,DV_Fel_Assault ,IPV_Rape ,DV_Rape 
+Bronx ,1,2973,190,299,10,17
+Bronx ,2,1520,66,106,5,9
+Bronx ,3,2892,125,190,7,10
+Bronx ,4,3095,119,206,4,10
+Bronx ,5,2884,171,244,9,14
+Bronx ,6,2058,121,179,8,14
+Bronx ,7,2547,132,192,9,15
+Bronx ,8,915,46,64,2,2
+Bronx ,9,3360,178,289,8,13
+Bronx ,10,1523,55,85,2,3
+Bronx ,11,1648,67,111,5,6
+Bronx ,12,2832,215,309,11,15
+Bronx , BXJIA ,22,2,2,0,0
+Brooklyn ,1,1706,78,127,6,8
+Brooklyn ,2,1506,56,92,1,2
+Brooklyn ,3,3100,135,215,14,20
+Brooklyn ,4,1514,67,104,3,9
+Brooklyn ,5,4317,210,355,19,25
+Brooklyn ,6,953,43,59,2,2
+Brooklyn ,7,855,49,76,10,12
+Brooklyn ,8,1856,72,128,2,5
+Brooklyn ,9,1320,52,97,2,2
+Brooklyn ,10,911,42,57,1,3
+Brooklyn ,11,1293,65,104,1,2
+Brooklyn ,12,678,34,52,2,4
+Brooklyn ,13,1482,58,102,1,4
+Brooklyn ,14,1600,79,113,3,7
+Brooklyn ,15,1155,56,90,5,5
+Brooklyn ,16,3399,166,259,9,16
+Brooklyn ,17,2677,164,261,7,13
+Brooklyn ,18,2503,100,189,8,14
+Brooklyn ,BKJIA,43,1,1,0,0
+Manhattan,1,496,5,8,1,1
+Manhattan,2,470,12,16,2,2
+Manhattan,3,1837,63,118,6,8
+Manhattan,4,1193,56,71,6,9
+Manhattan,5,822,37,41,2,2
+Manhattan,6,727,28,37,3,4
+Manhattan,7,1333,47,66,6,8
+Manhattan,8,889,29,43,3,3
+Manhattan,9,1474,57,93,3,8
+Manhattan,10,2897,128,197,2,5
+Manhattan,11,3214,157,244,9,18
+Manhattan,12,1994,80,146,7,7
+Manhattan,MNJIA,14,0,0,0,0
+Queens ,1,1930,99,141,10,13
+Queens ,2,981,50,75,3,3
+Queens ,3,2025,84,142,10,17
+Queens ,4,1469,66,95,5,10
+Queens ,5,1463,64,101,4,7
+Queens ,6,654,16,23,2,2
+Queens ,7,1647,70,100,3,6
+Queens ,8,1156,46,74,8,12
+Queens ,9,1738,46,68,2,7
+Queens ,10,1596,85,126,3,4
+Queens ,11,518,17,31,0,0
+Queens ,12,4226,218,357,14,23
+Queens ,13,1795,103,181,5,7
+Queens ,14,2641,143,232,10,15
+Queens ,QNJIA,24,1,1,0,0
+Staten Island ,1,4052,130,206,4,17
+Staten Island ,2,1188,34,54,1,2
+Staten Island ,3,1210,25,38,1,2
+Staten Island ,SIJIA ,11,0,0,0,0
+,,108821,,,,
