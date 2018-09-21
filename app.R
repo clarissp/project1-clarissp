@@ -5,25 +5,25 @@ library(shiny)
 library(shinydashboard)
 library(reshape2)
 library(dplyr)
+library(ggplot2)
 library(plotly)
 library(shinythemes)
-library(ggplot2)
+
 pdf(NULL)
 
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
-partner <- read.csv("IntimatePartnerViolence.csv")
-partner.load <- partner %>%
+partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
   mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both")
          )
 
 #Creates the header of the shiny dashboard 
 header <- dashboardHeader(title = "NYC Intimate Partner Violence Dashboard",
-                          #Creates the content for the notifications menu
+                          # Creates the content for the notifications menu
                           dropdownMenu(type = "notifications",
-                                       notificationItem(text = "Data updated on September 6, 2018", 
+                                       notificationItem(text = "Data updated on September 6, 2018",
                                                         icon = icon("calendar")
                                                         ),
-                                       notificationItem(text = "Joint Interest Areas removed from data", 
+                                       notificationItem(text = "Joint Interest Areas removed from data",
                                                         icon = icon("scissors")
                                        )
                           ),
@@ -31,7 +31,7 @@ header <- dashboardHeader(title = "NYC Intimate Partner Violence Dashboard",
                                        taskItem(value = 70, color = "green",
                                                 "Downloading Data")
                           ),
-                          #Creates the content for the messages menu 
+                          #Creates the content for the messages menu
                           dropdownMenu(type = "messages",
                                        messageItem(
                                          from = "NYC Open Data",
@@ -78,8 +78,8 @@ body <- dashboardBody(tabItems(
   #Creates the felony assault page
   tabItem("assault",
           fluidRow(
-            valueBoxOutput("incidents"),
-            valueBoxOutput("assault")
+            valueBoxOutput("incidentsBox"),
+            valueBoxOutput("assaultBox")
           ),
           fluidRow(
             box(
@@ -89,17 +89,18 @@ body <- dashboardBody(tabItems(
                                     "Borough" = "boro"),
                         selected = c("Comm_District")
                         )
-            ),
-            tabBox(width = 12,
-                   tabPanel("Bar Plot", plotlyOutput("assaultbarplot")),
-                   tabPanel("Box Plot", plotlyOutput("assaultboxplot"))
             )
-          )
+          ),
+          fluidRow(
+              tabBox(width = 12,
+                     tabPanel("Bar Plot", plotlyOutput("assaultbarplot")),
+                     tabPanel("Box Plot", plotlyOutput("assaultboxplot"))
+              )
+            )
   ),
   tabItem("rape",
           fluidRow(
-            valueBoxOutput("incidents"),
-            valueBoxOutput("rape")
+            valueBoxOutput("rapeBox")
           ),
           fluidRow(
             box(
@@ -118,9 +119,11 @@ body <- dashboardBody(tabItems(
   ),
   tabItem("table",
           fluidPage(
-            box(title = "Complete Intimate Partner Violence Dataset", DT::dataTableOutput("table"), width = 12))
+            box(title = "Complete Intimate Partner Violence Dataset", DT::dataTableOutput("table"), width = 12
+                )
+            )
+    )
   )
-)
 )
 
 ui <- dashboardPage(header, sidebar, body, skin = "black")
@@ -135,12 +138,12 @@ server <- function(input, output, session = session) {
     if (length(input$boro) > 0 ) {
       partner <- subset(partner, boro %in% input$boro)
     }
-    if (length(input$districtassault) > 0 ) {
-      partner <- subset(partner, Comm_District %in% input$districtassault)
-    }
-    if (length(input$districtrape) > 0 ) {
-      partner <- subset(partner, boro %in% input$districtrape)
-    }
+    # if (length(input$districtassault) > 0 ) {
+    #   partner <- subset(partner, Comm_District %in% input$districtassault)
+    # }
+    # if (length(input$districtrape) > 0 ) {
+    #   partner <- subset(partner, boro %in% input$districtrape)
+    # }
     
     return(partner)
   })
@@ -148,7 +151,7 @@ server <- function(input, output, session = session) {
   #Bar plot for felony assault that involved a family member by borough 
   output$assaultbarplot <- renderPlotly({
     partner <- partnerInput()
-    ggplot(data = partner, aes(x = boro, y =IPV_Fel_Assault)) +
+    ggplot(data = partner, aes(x = boro, y = IPV_Fel_Assault)) +
       geom_bar(stat="identity")
   })
   
@@ -179,7 +182,7 @@ server <- function(input, output, session = session) {
   })
   
   #Value box of average incidents 
-  output$incidents <- renderValueBox({
+  output$incidentsBox <- renderValueBox({
     partner <- partnerInput()
     incidents <- round(mean(partner$IPV_DIR, na.rm = T), 2)
     
@@ -187,7 +190,7 @@ server <- function(input, output, session = session) {
   })
   
   #Value box of average felony assaults
-  output$assault <- renderValueBox({
+  output$assaultBox <- renderValueBox({
     partner <- partnerInput()
     assault <- round(mean(partner$IPV_Fel_Assault, na.rm = T), 2)
     
@@ -195,7 +198,7 @@ server <- function(input, output, session = session) {
   })
   
   #Value box of average rapes
-  output$rape <- renderValueBox({
+  output$rapeBox <- renderValueBox({
     partner <- partnerInput()
     rape <- round(mean(partner$IPV_Rape, na.rm = T), 2)
     
