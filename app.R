@@ -17,7 +17,7 @@ partner.load <- partner %>%
          )
 
 #Creates the header of the shiny dashboard 
-header <- dashboardHeader(title = "NYC Intimate Partner Violence Dashboard",
+header <- dashboardHeader(title = "NYC Crime Dashboard",
                           #Creates the content for the notifications menu
                           dropdownMenu(type = "notifications",
                                        notificationItem(text = "Data updated on September 6, 2018", 
@@ -149,28 +149,28 @@ server <- function(input, output, session = session) {
   output$assaultbarplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner, aes(x = boro, y =IPV_Fel_Assault)) +
-      geom_bar(stat="identity")
+      geom_bar(stat="identity") + theme_dark()
   })
   
   #Box plot for felony assault that involved a family member by borough 
   output$assaultboxplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner) +
-      geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault))
+      geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_dark()
   })
   
   #Bar plot for rape that involved a family member by borough 
   output$rapebarplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner, aes(x = boro, y =IPV_Fel_Rape)) +
-      geom_bar(stat="identity")
+      geom_bar(stat="identity") + theme_dark()
   })
   
   #Box plot for rape that involved a family member by borough 
   output$rapeboxplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner) +
-      geom_boxplot(mapping = aes(x= boro, y = IPV_Rape))
+      geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_dark()
   })
   
   #Data table of whole dataset
