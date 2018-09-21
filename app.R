@@ -183,7 +183,7 @@ server <- function(input, output, session = session) {
     partner <- partnerInput()
     incidents <- round(mean(partner$IPV_DIR, na.rm = T), 2)
     
-    valueBox(subtitle = "Average Number of Incidents Reported", value = num, icon = icon("gavel"), color = "purple")
+    valueBox(subtitle = "Average Number of Incidents Reported", value = incidents , icon = icon("gavel"), color = "purple")
   })
   
   #Value box of average felony assaults
@@ -191,7 +191,7 @@ server <- function(input, output, session = session) {
     partner <- partnerInput()
     assault <- round(mean(partner$IPV_Fel_Assault, na.rm = T), 2)
     
-    valueBox(subtitle = "Average Number of Felony Assault Incidents Reported", value = num, icon = icon("gavel"), color = "purple")
+    valueBox(subtitle = "Average Number of Felony Assault Incidents Reported", value = assault, icon = icon("gavel"), color = "purple")
   })
   
   #Value box of average rapes
@@ -199,7 +199,7 @@ server <- function(input, output, session = session) {
     partner <- partnerInput()
     rape <- round(mean(partner$IPV_Rape, na.rm = T), 2)
     
-    valueBox(subtitle = "Average Number of Rape Incidents Reported", value = num, icon = icon("gavel"), color = "purple")
+    valueBox(subtitle = "Average Number of Rape Incidents Reported", value = rape, icon = icon("gavel"), color = "purple")
   })
 
 }
