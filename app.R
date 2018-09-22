@@ -5,25 +5,26 @@ library(shiny)
 library(shinydashboard)
 library(reshape2)
 library(dplyr)
+library(ggplot2)
 library(plotly)
 library(shinythemes)
-library(ggplot2)
+
 pdf(NULL)
 
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
-partner <- read.csv("IntimatePartnerViolence.csv")
-partner.load <- partner %>%
-  mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both")
+partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
+  mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
+         assaultincidents = trimws(as.numeric(IPV_Fel_Assault),"both")
          )
 
 #Creates the header of the shiny dashboard 
 header <- dashboardHeader(title = "NYC Crime Dashboard",
                           #Creates the content for the notifications menu
                           dropdownMenu(type = "notifications",
-                                       notificationItem(text = "Data updated on September 6, 2018", 
+                                       notificationItem(text = "Data updated on September 6, 2018",
                                                         icon = icon("calendar")
                                                         ),
-                                       notificationItem(text = "Joint Interest Areas removed from data", 
+                                       notificationItem(text = "Joint Interest Areas removed from data",
                                                         icon = icon("scissors")
                                        )
                           ),
@@ -31,7 +32,7 @@ header <- dashboardHeader(title = "NYC Crime Dashboard",
                                        taskItem(value = 70, color = "green",
                                                 "Downloading Data")
                           ),
-                          #Creates the content for the messages menu 
+                          #Creates the content for the messages menu
                           dropdownMenu(type = "messages",
                                        messageItem(
                                          from = "NYC Open Data",
@@ -69,7 +70,8 @@ sidebar <- dashboardSidebar(
                 min = min(partner.load$Comm_District, na.rm = T),
                 max = max(partner.load$Comm_District, na.rm = T),
                 value = c(min(partner.load$Comm_District, na.rm = T), max(partner.load$Comm_District, na.rm = T)),
-                step = 1)
+                step = 1),
+    actionButton("reset", "Reset Filters", icon = icon("refresh"))
   )
 )
 
@@ -78,37 +80,37 @@ body <- dashboardBody(tabItems(
   #Creates the felony assault page
   tabItem("assault",
           fluidRow(
-            valueBoxOutput("incidents"),
-            valueBoxOutput("assault")
+            valueBoxOutput("incidentsBox"),
+            valueBoxOutput("assaultBox")
           ),
           fluidRow(
             box(
-              selectInput("districtassault",
-                        "X-Axis:",
-                        choices = c("Community Distrct" = "Comm_District",
-                                    "Borough" = "boro"),
-                        selected = c("Comm_District")
-                        )
+              sliderInput("assaultcount",
+                          "Number of Felony Assault Incidents:",
+                          min = min(partner.load$IPV_Fel_Assault, na.rm = T),
+                          max = max(partner.load$IPV_Fel_Assault, na.rm = T),
+                          value = c(min(partner.load$IPV_Fel_Assault, na.rm = T), max(partner.load$IPV_Fel_Assault, na.rm = T)),
+                          step = 1) 
             ),
-            tabBox(width = 12,
-                   tabPanel("Bar Plot", plotlyOutput("assaultbarplot")),
-                   tabPanel("Box Plot", plotlyOutput("assaultboxplot"))
+              tabBox(width = 12,
+                     tabPanel("Bar Plot", plotlyOutput("assaultbarplot")),
+                     tabPanel("Box Plot", plotlyOutput("assaultboxplot"))
+              )
             )
-          )
   ),
   tabItem("rape",
           fluidRow(
-            valueBoxOutput("incidents"),
-            valueBoxOutput("rape")
+            valueBoxOutput("rapeincidentsBox"),
+            valueBoxOutput("rapeBox")
           ),
           fluidRow(
             box(
-              selectInput("districtrape",
-                          "X-Axis:",
-                          choices = c("Community Distrct" = "Comm_District",
-                                      "Borough" = "boro"),
-                          selected = c("boro")
-              )
+              sliderInput("rapecount",
+                          "Number of Rape Incidents:",
+                          min = min(partner.load$IPV_Rape, na.rm = T),
+                          max = max(partner.load$IPV_Rape, na.rm = T),
+                          value = c(min(partner.load$IPV_Rape, na.rm = T), max(partner.load$IPV_Rape, na.rm = T)),
+                          step = 1)
             ),
             tabBox(width = 12,
                  tabPanel("Bar Plot", plotlyOutput("rapebarplot")),
@@ -118,9 +120,11 @@ body <- dashboardBody(tabItems(
   ),
   tabItem("table",
           fluidPage(
-            box(title = "Complete Intimate Partner Violence Dataset", DT::dataTableOutput("table"), width = 12))
+            box(title = "Complete Intimate Partner Violence Dataset", DT::dataTableOutput("table"), width = 12
+                )
+            )
+    )
   )
-)
 )
 
 ui <- dashboardPage(header, sidebar, body, skin = "black")
@@ -130,16 +134,15 @@ server <- function(input, output, session = session) {
   partnerInput <- reactive({
     partner <- partner.load %>%
       # Allows for the slider input to be reactive
-      filter(Comm_District >= input$district[1] & Comm_District <= input$district[2])
+      filter(Comm_District >= input$district[1] & Comm_District <= input$district[2]) #& 
+      #IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2] &
+      #IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]
+    #These two filters are not working. For some reason when I include them they cause all my ggplots
+    #Subsequently my two sliders on the two individual pages are not reactive 
+    
     # Allows for the select input to be reactive
     if (length(input$boro) > 0 ) {
       partner <- subset(partner, boro %in% input$boro)
-    }
-    if (length(input$districtassault) > 0 ) {
-      partner <- subset(partner, Comm_District %in% input$districtassault)
-    }
-    if (length(input$districtrape) > 0 ) {
-      partner <- subset(partner, boro %in% input$districtrape)
     }
     
     return(partner)
@@ -149,28 +152,28 @@ server <- function(input, output, session = session) {
   output$assaultbarplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner, aes(x = boro, y =IPV_Fel_Assault)) +
-      geom_bar(stat="identity") + theme_dark()
+      geom_bar(stat="identity", fill = "#bcbddc") + theme_bw()
   })
   
   #Box plot for felony assault that involved a family member by borough 
   output$assaultboxplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner) +
-      geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_dark()
+      geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_bw()
   })
   
   #Bar plot for rape that involved a family member by borough 
   output$rapebarplot <- renderPlotly({
     partner <- partnerInput()
-    ggplot(data = partner, aes(x = boro, y =IPV_Fel_Rape)) +
-      geom_bar(stat="identity") + theme_dark()
+    ggplot(data = partner, aes(x = boro, y =IPV_Rape)) +
+      geom_bar(stat="identity", fill = "#ffeda0") + theme_bw()
   })
   
   #Box plot for rape that involved a family member by borough 
   output$rapeboxplot <- renderPlotly({
     partner <- partnerInput()
     ggplot(data = partner) +
-      geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_dark()
+      geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_bw()
   })
   
   #Data table of whole dataset
@@ -179,27 +182,43 @@ server <- function(input, output, session = session) {
   })
   
   #Value box of average incidents 
-  output$incidents <- renderValueBox({
+  output$incidentsBox <- renderValueBox({
     partner <- partnerInput()
-    incidents <- round(mean(partner$IPV_DIR, na.rm = T), 2)
+    incidents <- round(mean(partner$IPV_DIR, na.rm = T), 0)
     
-    valueBox(subtitle = "Average Number of Incidents Reported", value = incidents , icon = icon("gavel"), color = "purple")
+    valueBox(subtitle = "Average Number of Incidents Reported", value = incidents , icon = icon("gavel"), color = "teal")
   })
   
   #Value box of average felony assaults
-  output$assault <- renderValueBox({
+  output$assaultBox <- renderValueBox({
     partner <- partnerInput()
-    assault <- round(mean(partner$IPV_Fel_Assault, na.rm = T), 2)
+    assault <- round(mean(partner$IPV_Fel_Assault, na.rm = T), 0)
     
     valueBox(subtitle = "Average Number of Felony Assault Incidents Reported", value = assault, icon = icon("gavel"), color = "purple")
   })
   
-  #Value box of average rapes
-  output$rape <- renderValueBox({
+  #Value box of average incidents box, this is the same number as my first value box, the reason I have two is so that users can have a reference
+  #of the average number of incidents on each page to compare to rape incidents to 
+  output$rapeincidentsBox <- renderValueBox({
     partner <- partnerInput()
-    rape <- round(mean(partner$IPV_Rape, na.rm = T), 2)
+    incidents <- round(mean(partner$IPV_DIR, na.rm = T), 0)
     
-    valueBox(subtitle = "Average Number of Rape Incidents Reported", value = rape, icon = icon("gavel"), color = "purple")
+    valueBox(subtitle = "Average Number of Incidents Reported", value = incidents , icon = icon("gavel"), color = "teal")
+  })
+  
+  #Value box of average rapes
+  output$rapeBox <- renderValueBox({
+    partner <- partnerInput()
+    rape <- round(mean(partner$IPV_Rape, na.rm = T), 0)
+    
+    valueBox(subtitle = "Average Number of Rape Incidents Reported", value = rape, icon = icon("gavel"), color = "yellow")
+  })
+  
+  observeEvent(input$reset, {
+    updateSelectInput(session, "boro", selected = c("Queens", "Manhattan"))
+    updateSliderInput(session, "district", value = c(min(partner.load$Comm_District, na.rm = T), max(partner.load$Comm_District, na.rm = T)))
+    updateSliderInput(session, "assaultcount", value = c(min(partner.load$IPV_Fel_Assault, na.rm = T), max(partner.load$IPV_Fel_Assault, na.rm = T)))
+    showNotification("You have successfully reset the filters", type = "message")
   })
 
 }
