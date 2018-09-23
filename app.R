@@ -86,11 +86,11 @@ body <- dashboardBody(tabItems(
           fluidRow(
             box(
               sliderInput("assaultcount",
-                          "Number of Felony Assault Incidents:",
+                          HTML("Change the Range of <br> Felony Assault Incidents <br> in the Box Plot:"),
                           min = min(partner.load$IPV_Fel_Assault, na.rm = T),
                           max = max(partner.load$IPV_Fel_Assault, na.rm = T),
                           value = c(min(partner.load$IPV_Fel_Assault, na.rm = T), max(partner.load$IPV_Fel_Assault, na.rm = T)),
-                          step = 1) 
+                          step = 10) 
             ),
               tabBox(width = 12,
                      tabPanel("Bar Plot", plotlyOutput("assaultbarplot")),
@@ -106,7 +106,7 @@ body <- dashboardBody(tabItems(
           fluidRow(
             box(
               sliderInput("rapecount",
-                          "Number of Rape Incidents:",
+                          HTML("Change the Range of <br> Rape Incidents in the Box Plot:"),
                           min = min(partner.load$IPV_Rape, na.rm = T),
                           max = max(partner.load$IPV_Rape, na.rm = T),
                           value = c(min(partner.load$IPV_Rape, na.rm = T), max(partner.load$IPV_Rape, na.rm = T)),
@@ -131,14 +131,11 @@ ui <- dashboardPage(header, sidebar, body, skin = "black")
 
 # Define server logic
 server <- function(input, output, session = session) {
+  #Reactive function for all pages (global inputs)
   partnerInput <- reactive({
     partner <- partner.load %>%
       # Allows for the slider input to be reactive
-      filter(Comm_District >= input$district[1] & Comm_District <= input$district[2]) #& 
-      #IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2] &
-      #IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]
-    #These two filters are not working. For some reason when I include them they cause all my ggplots
-    #Subsequently my two sliders on the two individual pages are not reactive 
+      filter(Comm_District >= input$district[1] & Comm_District <= input$district[2]) 
     
     # Allows for the select input to be reactive
     if (length(input$boro) > 0 ) {
@@ -148,15 +145,22 @@ server <- function(input, output, session = session) {
     return(partner)
   })
   
-  #Reactive Function for Assaults Page
-  
+  #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
-    # Load Global Filtered Partner Data
-    partner <- partnerInput()
-    
-    # Place your filters here. Remember to do one for your second page and change your plots/boxes to pull from the appropriate reactive functions!
-    
+    #Allows for the slider input of felony assaults to be reactive for the boxplot
+    partnerAssaults <- partnerInput()
+      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2])
+   #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it 
     return(partner)
+  })
+  
+  #Reactive Function for Rape Page (local input)
+  partnerRapes <- reactive({
+    #Allows for the slider input of felony assaults to be reactive for the boxplot
+    partner <- partnerInput()
+      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2])
+      #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it
+      return(partner)
   })
   
   #Bar plot for felony assault that involved a family member by borough 
@@ -168,8 +172,8 @@ server <- function(input, output, session = session) {
   
   #Box plot for felony assault that involved a family member by borough 
   output$assaultboxplot <- renderPlotly({
-    partner <- partnerInput()
-    ggplot(data = partner) +
+    partnerAssaults <- partnerInput()
+    ggplot(data = partner.load) +
       geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_bw()
   })
   
@@ -182,8 +186,8 @@ server <- function(input, output, session = session) {
   
   #Box plot for rape that involved a family member by borough 
   output$rapeboxplot <- renderPlotly({
-    partner <- partnerInput()
-    ggplot(data = partner) +
+    partnerRapes <- partnerInput()
+    ggplot(data = partner.load) +
       geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_bw()
   })
   
@@ -229,6 +233,7 @@ server <- function(input, output, session = session) {
     updateSelectInput(session, "boro", selected = c("Queens", "Manhattan"))
     updateSliderInput(session, "district", value = c(min(partner.load$Comm_District, na.rm = T), max(partner.load$Comm_District, na.rm = T)))
     updateSliderInput(session, "assaultcount", value = c(min(partner.load$IPV_Fel_Assault, na.rm = T), max(partner.load$IPV_Fel_Assault, na.rm = T)))
+    updateSliderInput(session, "rapecount", value = c(min(partner.load$IPV_Rape, na.rm = T), max(partner.load$IPV_Rape, na.rm = T)))
     showNotification("You have successfully reset the filters", type = "message")
   })
 
