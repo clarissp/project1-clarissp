@@ -148,6 +148,17 @@ server <- function(input, output, session = session) {
     return(partner)
   })
   
+  #Reactive Function for Assaults Page
+  
+  partnerAssaults <- reactive({
+    # Load Global Filtered Partner Data
+    partner <- partnerInput()
+    
+    # Place your filters here. Remember to do one for your second page and change your plots/boxes to pull from the appropriate reactive functions!
+    
+    return(partner)
+  })
+  
   #Bar plot for felony assault that involved a family member by borough 
   output$assaultbarplot <- renderPlotly({
     partner <- partnerInput()
