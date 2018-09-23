@@ -148,7 +148,7 @@ server <- function(input, output, session = session) {
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    partnerAssaults <- partnerInput()
+    partnerAssaults <- partnerInput() %>% # You didn't pipe it
       filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2])
    #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it 
     return(partner)
@@ -157,7 +157,7 @@ server <- function(input, output, session = session) {
   #Reactive Function for Rape Page (local input)
   partnerRapes <- reactive({
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    partner <- partnerInput()
+    partner <- partnerInput() %>% # forgot the pipe again
       filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2])
       #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it
       return(partner)
@@ -165,28 +165,28 @@ server <- function(input, output, session = session) {
   
   #Bar plot for felony assault that involved a family member by borough 
   output$assaultbarplot <- renderPlotly({
-    partner <- partnerInput()
+    partner <- partnerInput() # Then this needs to be partnerAssaults
     ggplot(data = partner, aes(x = boro, y =IPV_Fel_Assault)) +
       geom_bar(stat="identity", fill = "#bcbddc") + theme_bw()
   })
   
   #Box plot for felony assault that involved a family member by borough 
   output$assaultboxplot <- renderPlotly({
-    partnerAssaults <- partnerInput()
+    partnerAssaults <- partnerInput() # Same as above
     ggplot(data = partner.load) +
       geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_bw()
   })
   
   #Bar plot for rape that involved a family member by borough 
   output$rapebarplot <- renderPlotly({
-    partner <- partnerInput()
+    partner <- partnerInput() # Change to other function
     ggplot(data = partner, aes(x = boro, y =IPV_Rape)) +
       geom_bar(stat="identity", fill = "#ffeda0") + theme_bw()
   })
   
   #Box plot for rape that involved a family member by borough 
   output$rapeboxplot <- renderPlotly({
-    partnerRapes <- partnerInput()
+    partnerRapes <- partnerInput() # See above
     ggplot(data = partner.load) +
       geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_bw()
   })
