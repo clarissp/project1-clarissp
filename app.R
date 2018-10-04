@@ -8,8 +8,11 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 library(shinythemes)
+library(RSocrata)
 
 pdf(NULL)
+
+token <- jsonlite::fromJSON("token.json")$token
 
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
 partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
@@ -148,13 +151,8 @@ server <- function(input, output, session = session) {
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-<<<<<<< HEAD
-    partnerAssaults <- partnerInput() %>%
+    partner <- partnerInput() %>%
       filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
-=======
-    partnerAssaults <- partnerInput() %>% # You didn't pipe it
-      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2])
->>>>>>> 9253d19e5270da23ddbc448ab1e342ed31ce1061
    #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it 
     return(partner)
   })
@@ -162,13 +160,8 @@ server <- function(input, output, session = session) {
   #Reactive Function for Rape Page (local input)
   partnerRapes <- reactive({
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-<<<<<<< HEAD
     partner <- partnerInput() %>%
       filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
-=======
-    partner <- partnerInput() %>% # forgot the pipe again
-      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2])
->>>>>>> 9253d19e5270da23ddbc448ab1e342ed31ce1061
       #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it
       return(partner)
   })
@@ -182,8 +175,8 @@ server <- function(input, output, session = session) {
   
   #Box plot for felony assault that involved a family member by borough 
   output$assaultboxplot <- renderPlotly({
-    partnerAssaults <- partnerInput() # Same as above
-    ggplot(data = partner.load) +
+    partnerAssaults <- partnerAssaults() # Same as above
+    ggplot(data = partnerAssaults) +
       geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_bw()
   })
   
@@ -196,8 +189,8 @@ server <- function(input, output, session = session) {
   
   #Box plot for rape that involved a family member by borough 
   output$rapeboxplot <- renderPlotly({
-    partnerRapes <- partnerInput() # See above
-    ggplot(data = partner.load) +
+    partnerRapes <- partnerRapes() # See above
+    ggplot(data = partnerRapes) +
       geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_bw()
   })
   
