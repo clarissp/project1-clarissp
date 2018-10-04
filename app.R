@@ -148,8 +148,8 @@ server <- function(input, output, session = session) {
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    partnerAssaults <- partnerInput()
-      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2])
+    partnerAssaults <- partnerInput() %>%
+      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
    #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it 
     return(partner)
   })
@@ -157,8 +157,8 @@ server <- function(input, output, session = session) {
   #Reactive Function for Rape Page (local input)
   partnerRapes <- reactive({
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    partner <- partnerInput()
-      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2])
+    partner <- partnerInput() %>%
+      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
       #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it
       return(partner)
   })
