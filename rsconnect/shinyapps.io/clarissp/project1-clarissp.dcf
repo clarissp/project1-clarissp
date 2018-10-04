@@ -1,0 +1,12 @@
+name: project1-clarissp
+title: project1-clarissp
+username:
+account: clarissp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 464183
+bundleId: 1600714
+url: https://clarissp.shinyapps.io/project1-clarissp/
+when: 1537716222.64877
+asMultiple: FALSE
+asStatic: FALSE
