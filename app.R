@@ -16,7 +16,7 @@ pdf(NULL)
 token <- jsonlite::fromJSON("token.json")$token
 
 #This line keeps throwing an error and I don't know how to resolve it
-crimesubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = "token")
+crimesubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = token)
 
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
 #partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
