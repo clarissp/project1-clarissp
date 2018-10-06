@@ -1,4 +1,4 @@
-#Project 1 
+#Project 1 Update to attempt to do HW 4
 #Using Shinydashboard
 
 library(shiny)
@@ -23,14 +23,7 @@ district <- as.numeric(unique(borosubset$comm_district))
 assault <- as.numeric(unique(borosubset$ipv_fel_assault))
 rape <- as.numeric(unique(borosubset$ipv_rape))
   
-
 remove(borosubset)
-
-#Create variable for intimate partner violence data downloaded from NYC Open Data 
-#partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
-  #mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
-         #assaultincidents = trimws(as.numeric(IPV_Fel_Assault),"both")
-         #)
 
 #Creates the header of the shiny dashboard 
 header <- dashboardHeader(title = "NYC Crime Dashboard",
@@ -148,21 +141,21 @@ ui <- dashboardPage(header, sidebar, body, skin = "black")
 server <- function(input, output, session = session) {
   #Reactive function for all pages (global inputs)
   partnerInput <- reactive({
+    # Allows for the slider input to be reactive
     if (length(input$district) > 0 ) {
-      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=comm_district >='", 
-                                     input$district[1], "comm_district <='", input$district[2]), app_token = token)
+      #I think this is line is the reason my code is not working but I have tried various attempts to fix it but still have had no luck fixing it
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_district >= '", input$district[1],
+                             comm_district, input$district[2]), app_token = token)
     }
-      # Allows for the slider input to be reactive
-      
-  #filter(Comm_District >= input$district[1] & Comm_District <= input$district[2]) 
     
     # Allows for the select input to be reactive
     if (length(input$boro) > 0 ) {
-      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=comm_dist_boro >= '", 
-                                     input$boro, "comm_dist_boro"), app_token = token)
-      #partner <- subset(partner, boro %in% input$boro)
+      #Same comment about the reason my code is not working 
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro >= '", 
+                                     input$boro, comm_dist_boro), app_token = token)
     }
     
+    #Attempt to subset my data, not sure if this worked either 
     partner <- select(partner,c("comm_district_boro", "comm_district", "ipv_fel_assault", "ipv_rape"))
   
     return(partner)
@@ -171,25 +164,22 @@ server <- function(input, output, session = session) {
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
     if (length(input$assaultcount) > 0 ) {
-      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=ipv_fel_assault >= '", 
-                                     input$assaultcount[1], "ipv_fel_assault<='", input$assaultcount[2]), app_token = token)
+      #Same comment about the reason my code is not working 
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=ipv_fel_assault >= '", 
+                                     input$assaultcount[1], ipv_fel_assault, input$assaultcount[2]), app_token = token)
     }
     
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    #partner <- partnerInput() %>%
-      #filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
     return(partner)
   })
   
   #Reactive Function for Rape Page (local input)
   partnerRapes <- reactive({
     if (length(input$rapecount) > 0 ) {
-      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?where=ipv_rape >= '", 
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=ipv_rape >= '", 
                                      input$rapecount[1], "ipv_rape<='", input$rapecount[2]), app_token = token)
     }
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    #partner <- partnerInput() %>%
-      #filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
       return(partner)
   })
   
