@@ -23,6 +23,7 @@ district <- as.numeric(unique(borosubset$comm_district))
 assault <- as.numeric(unique(borosubset$ipv_fel_assault))
 rape <- as.numeric(unique(borosubset$ipv_rape))
   
+
 remove(borosubset)
 
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
