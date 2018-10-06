@@ -18,6 +18,9 @@ token <- jsonlite::fromJSON("token.json")$token
 
 borosubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = token)
 
+# Socrata's API works a bit differently from the WPRDC, they have something similar:
+# https://stackoverflow.com/questions/39108866/is-there-a-soql-distinct-or-equivelent-directive
+
 boro1 <- as.character(unique(borosubset$comm_dist_boro))
 district <- as.numeric(unique(borosubset$comm_district))
 assault <- as.numeric(unique(borosubset$ipv_fel_assault))
@@ -146,11 +149,13 @@ server <- function(input, output, session = session) {
       #I think this is line is the reason my code is not working but I have tried various attempts to fix it but still have had no luck fixing it
       partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_district >= '", input$district[1],
                              comm_district, input$district[2]), app_token = token)
+      # Your filters are WHERE statements, not part of the select statement. Dominic did this in his app. I wish you had reached out to him, or consulted his code a bit more.
     }
     
     # Allows for the select input to be reactive
     if (length(input$boro) > 0 ) {
-      #Same comment about the reason my code is not working 
+      #Same comment about the reason my code is not working.
+      # You need to build ONE URL string, not multiple...
       partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro >= '", 
                                      input$boro, comm_dist_boro), app_token = token)
     }
@@ -164,7 +169,7 @@ server <- function(input, output, session = session) {
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
     if (length(input$assaultcount) > 0 ) {
-      #Same comment about the reason my code is not working 
+      #Same comment about the reason my code is not working YOu should just PULL the data from before. Everything else about the app really should have remained the same
       partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=ipv_fel_assault >= '", 
                                      input$assaultcount[1], ipv_fel_assault, input$assaultcount[2]), app_token = token)
     }
