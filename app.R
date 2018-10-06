@@ -9,20 +9,27 @@ library(ggplot2)
 library(plotly)
 library(shinythemes)
 library(RSocrata)
+library(httr)
 
 pdf(NULL)
 
 #Imports the token 
 token <- jsonlite::fromJSON("token.json")$token
 
-#This line keeps throwing an error and I don't know how to resolve it
-#crimesubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = "token")
+borosubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = token)
+
+boro1 <- as.character(unique(borosubset$comm_dist_boro))
+district <- as.numeric(unique(borosubset$comm_district))
+assault <- as.numeric(unique(borosubset$ipv_fel_assault))
+rape <- as.numeric(unique(borosubset$ipv_rape))
+  
+remove(borosubset)
 
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
-partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
-  mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
-         assaultincidents = trimws(as.numeric(IPV_Fel_Assault),"both")
-         )
+#partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
+  #mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
+         #assaultincidents = trimws(as.numeric(IPV_Fel_Assault),"both")
+         #)
 
 #Creates the header of the shiny dashboard 
 header <- dashboardHeader(title = "NYC Crime Dashboard",
@@ -67,16 +74,16 @@ sidebar <- dashboardSidebar(
     #Creates borough select input
     selectInput("boro",
                 "Boroughs:",
-                choices = sort(unique(partner.load$boro)),
+                choices = sort(boro1),
                 multiple = TRUE,
-                selectize = TRUE,
-                selected = c("Queens", "Manhattan")),
+                selected = TRUE),
     #Creates Community District slider input
     sliderInput("district",
                 "Community Districts:",
-                min = min(partner.load$Comm_District, na.rm = T),
-                max = max(partner.load$Comm_District, na.rm = T),
-                value = c(min(partner.load$Comm_District, na.rm = T), max(partner.load$Comm_District, na.rm = T)),
+                min = min(district, na.rm = T),
+                max = max(district, na.rm = T),
+                value = c(min(district, na.rm = T),
+                          max(district, na.rm = T)),
                 step = 1),
     actionButton("reset", "Reset Filters", icon = icon("refresh"))
   )
@@ -94,9 +101,9 @@ body <- dashboardBody(tabItems(
             box(
               sliderInput("assaultcount",
                           HTML("Change the Range of <br> Felony Assault Incidents <br> in the Box Plot:"),
-                          min = min(partner.load$IPV_Fel_Assault, na.rm = T),
-                          max = max(partner.load$IPV_Fel_Assault, na.rm = T),
-                          value = c(min(partner.load$IPV_Fel_Assault, na.rm = T), max(partner.load$IPV_Fel_Assault, na.rm = T)),
+                          min = min(assault, na.rm = T),
+                          max = max(assault, na.rm = T),
+                          value = c(min(assault, na.rm = T), max(assault, na.rm = T)),
                           step = 10) 
             ),
               tabBox(width = 12,
@@ -114,9 +121,9 @@ body <- dashboardBody(tabItems(
             box(
               sliderInput("rapecount",
                           HTML("Change the Range of <br> Rape Incidents in the Box Plot:"),
-                          min = min(partner.load$IPV_Rape, na.rm = T),
-                          max = max(partner.load$IPV_Rape, na.rm = T),
-                          value = c(min(partner.load$IPV_Rape, na.rm = T), max(partner.load$IPV_Rape, na.rm = T)),
+                          min = min(rape, na.rm = T),
+                          max = max(rape, na.rm = T),
+                          value = c(min(rape, na.rm = T), max(rape, na.rm = T)),
                           step = 1)
             ),
             tabBox(width = 12,
@@ -140,40 +147,55 @@ ui <- dashboardPage(header, sidebar, body, skin = "black")
 server <- function(input, output, session = session) {
   #Reactive function for all pages (global inputs)
   partnerInput <- reactive({
-    partner <- partner.load %>%
+    if (length(input$district) > 0 ) {
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=comm_district >='", 
+                                     input$district[1], "comm_district <='", input$district[2]), app_token = token)
+    }
       # Allows for the slider input to be reactive
-      filter(Comm_District >= input$district[1] & Comm_District <= input$district[2]) 
+      
+  #filter(Comm_District >= input$district[1] & Comm_District <= input$district[2]) 
     
     # Allows for the select input to be reactive
     if (length(input$boro) > 0 ) {
-      partner <- subset(partner, boro %in% input$boro)
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=comm_dist_boro >= '", 
+                                     input$boro, "comm_dist_boro"), app_token = token)
+      #partner <- subset(partner, boro %in% input$boro)
     }
     
+    partner <- select(partner,c("comm_district_boro", "comm_district", "ipv_fel_assault", "ipv_rape"))
+  
     return(partner)
   })
   
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
+    if (length(input$assaultcount) > 0 ) {
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=ipv_fel_assault >= '", 
+                                     input$assaultcount[1], "ipv_fel_assault<='", input$assaultcount[2]), app_token = token)
+    }
+    
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    partner <- partnerInput() %>%
-      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
-   #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it 
+    #partner <- partnerInput() %>%
+      #filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
     return(partner)
   })
   
   #Reactive Function for Rape Page (local input)
   partnerRapes <- reactive({
+    if (length(input$rapecount) > 0 ) {
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?where=ipv_rape >= '", 
+                                     input$rapecount[1], "ipv_rape<='", input$rapecount[2]), app_token = token)
+    }
     #Allows for the slider input of felony assaults to be reactive for the boxplot
-    partner <- partnerInput() %>%
-      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
-      #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it
+    #partner <- partnerInput() %>%
+      #filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
       return(partner)
   })
   
   #Bar plot for felony assault that involved a family member by borough 
   output$assaultbarplot <- renderPlotly({
     partner <- partnerInput() # Then this needs to be partnerAssaults
-    ggplot(data = partner, aes(x = boro, y =IPV_Fel_Assault)) +
+    ggplot(data = partner, aes(x = comm_dist_boro, y =ipv_fel_assault)) +
       geom_bar(stat="identity", fill = "#bcbddc") + theme_bw()
   })
   
@@ -181,13 +203,13 @@ server <- function(input, output, session = session) {
   output$assaultboxplot <- renderPlotly({
     partnerAssaults <- partnerAssaults() # Same as above
     ggplot(data = partnerAssaults) +
-      geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_bw()
+      geom_boxplot(mapping = aes(x= comm_dist_boro, y = ipv_fel_assault)) + theme_bw()
   })
   
   #Bar plot for rape that involved a family member by borough 
   output$rapebarplot <- renderPlotly({
     partner <- partnerInput() # Change to other function
-    ggplot(data = partner, aes(x = boro, y =IPV_Rape)) +
+    ggplot(data = partner, aes(x = comm_dist_boro, y =ipv_rape)) +
       geom_bar(stat="identity", fill = "#ffeda0") + theme_bw()
   })
   
@@ -195,18 +217,18 @@ server <- function(input, output, session = session) {
   output$rapeboxplot <- renderPlotly({
     partnerRapes <- partnerRapes() # See above
     ggplot(data = partnerRapes) +
-      geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_bw()
+      geom_boxplot(mapping = aes(x= comm_dist_boro, y = ipv_rape)) + theme_bw()
   })
   
   #Data table of whole dataset
   output$table <- DT::renderDataTable({
-    subset(partnerInput(), select = c(boro, Comm_District, IPV_Fel_Assault, DV_Fel_Assault, IPV_Rape, DV_Rape))
+    subset(partnerInput(), select = c(comm_dist_boro, comm_district, ipv_fel_assault, ipv_rape, ipv_dir))
   })
   
   #Value box of average incidents 
   output$incidentsBox <- renderValueBox({
     partner <- partnerInput()
-    incidents <- round(mean(partner$IPV_DIR, na.rm = T), 0)
+    incidents <- round(mean(partner$ipv_dir, na.rm = T), 0)
     
     valueBox(subtitle = "Average Number of Incidents Reported", value = incidents , icon = icon("gavel"), color = "teal")
   })
@@ -214,7 +236,7 @@ server <- function(input, output, session = session) {
   #Value box of average felony assaults
   output$assaultBox <- renderValueBox({
     partner <- partnerInput()
-    assault <- round(mean(partner$IPV_Fel_Assault, na.rm = T), 0)
+    assault <- round(mean(partner$ipv_fel_assault, na.rm = T), 0)
     
     valueBox(subtitle = "Average Number of Felony Assault Incidents Reported", value = assault, icon = icon("gavel"), color = "purple")
   })
@@ -223,7 +245,7 @@ server <- function(input, output, session = session) {
   #of the average number of incidents on each page to compare to rape incidents to 
   output$rapeincidentsBox <- renderValueBox({
     partner <- partnerInput()
-    incidents <- round(mean(partner$IPV_DIR, na.rm = T), 0)
+    incidents <- round(mean(partner$ipv_dir, na.rm = T), 0)
     
     valueBox(subtitle = "Average Number of Incidents Reported", value = incidents , icon = icon("gavel"), color = "teal")
   })
@@ -231,16 +253,16 @@ server <- function(input, output, session = session) {
   #Value box of average rapes
   output$rapeBox <- renderValueBox({
     partner <- partnerInput()
-    rape <- round(mean(partner$IPV_Rape, na.rm = T), 0)
+    rape <- round(mean(partner$ipv_rape, na.rm = T), 0)
     
     valueBox(subtitle = "Average Number of Rape Incidents Reported", value = rape, icon = icon("gavel"), color = "yellow")
   })
   
   observeEvent(input$reset, {
-    updateSelectInput(session, "boro", selected = c("Queens", "Manhattan"))
-    updateSliderInput(session, "district", value = c(min(partner.load$Comm_District, na.rm = T), max(partner.load$Comm_District, na.rm = T)))
-    updateSliderInput(session, "assaultcount", value = c(min(partner.load$IPV_Fel_Assault, na.rm = T), max(partner.load$IPV_Fel_Assault, na.rm = T)))
-    updateSliderInput(session, "rapecount", value = c(min(partner.load$IPV_Rape, na.rm = T), max(partner.load$IPV_Rape, na.rm = T)))
+    updateSelectInput(session, "boro", selected = c(""))
+    updateSliderInput(session, "district", value = c(min(district, na.rm = T), max(district, na.rm = T)))
+    updateSliderInput(session, "assaultcount", value = c(min(assault, na.rm = T), max(assault, na.rm = T)))
+    updateSliderInput(session, "rapecount", value = c(min(rape, na.rm = T), max(rape, na.rm = T)))
     showNotification("You have successfully reset the filters", type = "message")
   })
 
