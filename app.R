@@ -8,6 +8,7 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 library(shinythemes)
+<<<<<<< HEAD
 library(RSocrata)
 library(httr)
 
@@ -31,6 +32,11 @@ remove(borosubset)
 
 =======
 >>>>>>> parent of 8dfbb39... Socrata error
+=======
+
+pdf(NULL)
+
+>>>>>>> parent of 2afacd9... Local inputs working!
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
 partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
   mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
@@ -201,8 +207,19 @@ server <- function(input, output, session = session) {
     }
     
     #Allows for the slider input of felony assaults to be reactive for the boxplot
+<<<<<<< HEAD
     #partner <- partnerInput() %>%
       #filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
+=======
+<<<<<<< HEAD
+    partnerAssaults <- partnerInput() %>%
+      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2]) 
+=======
+    partnerAssaults <- partnerInput() %>% # You didn't pipe it
+      filter(IPV_Fel_Assault >= input$assaultcount[1] & IPV_Fel_Assault <= input$assaultcount[2])
+>>>>>>> 9253d19e5270da23ddbc448ab1e342ed31ce1061
+   #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it 
+>>>>>>> parent of 2afacd9... Local inputs working!
     return(partner)
   })
   
@@ -213,8 +230,19 @@ server <- function(input, output, session = session) {
                                      input$rapecount[1], "ipv_rape<='", input$rapecount[2]), app_token = token)
     }
     #Allows for the slider input of felony assaults to be reactive for the boxplot
+<<<<<<< HEAD
     #partner <- partnerInput() %>%
       #filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
+=======
+<<<<<<< HEAD
+    partner <- partnerInput() %>%
+      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2]) 
+=======
+    partner <- partnerInput() %>% # forgot the pipe again
+      filter(IPV_Rape >= input$rapecount[1] & IPV_Rape <= input$rapecount[2])
+>>>>>>> 9253d19e5270da23ddbc448ab1e342ed31ce1061
+      #Still could not get this input to be reactive, I know the boxplot is not reacting to the global inputs but could not get the local input to react to it
+>>>>>>> parent of 2afacd9... Local inputs working!
       return(partner)
   })
   
@@ -227,9 +255,15 @@ server <- function(input, output, session = session) {
   
   #Box plot for felony assault that involved a family member by borough 
   output$assaultboxplot <- renderPlotly({
+<<<<<<< HEAD
     partnerAssaults <- partnerAssaults() # Same as above
     ggplot(data = partnerAssaults) +
       geom_boxplot(mapping = aes(x= comm_dist_boro, y = ipv_fel_assault)) + theme_bw()
+=======
+    partnerAssaults <- partnerInput() # Same as above
+    ggplot(data = partner.load) +
+      geom_boxplot(mapping = aes(x= boro, y = IPV_Fel_Assault)) + theme_bw()
+>>>>>>> parent of 2afacd9... Local inputs working!
   })
   
   #Bar plot for rape that involved a family member by borough 
@@ -241,9 +275,15 @@ server <- function(input, output, session = session) {
   
   #Box plot for rape that involved a family member by borough 
   output$rapeboxplot <- renderPlotly({
+<<<<<<< HEAD
     partnerRapes <- partnerRapes() # See above
     ggplot(data = partnerRapes) +
       geom_boxplot(mapping = aes(x= comm_dist_boro, y = ipv_rape)) + theme_bw()
+=======
+    partnerRapes <- partnerInput() # See above
+    ggplot(data = partner.load) +
+      geom_boxplot(mapping = aes(x= boro, y = IPV_Rape)) + theme_bw()
+>>>>>>> parent of 2afacd9... Local inputs working!
   })
   
   #Data table of whole dataset
