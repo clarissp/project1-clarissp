@@ -18,6 +18,9 @@ token <- jsonlite::fromJSON("token.json")$token
 
 borosubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = token)
 
+# Socrata's API works a bit differently from the WPRDC, they have something similar:
+# https://stackoverflow.com/questions/39108866/is-there-a-soql-distinct-or-equivelent-directive
+
 boro1 <- as.character(unique(borosubset$comm_dist_boro))
 district <- as.numeric(unique(borosubset$comm_district))
 assault <- as.numeric(unique(borosubset$ipv_fel_assault))
@@ -149,8 +152,15 @@ server <- function(input, output, session = session) {
   #Reactive function for all pages (global inputs)
   partnerInput <- reactive({
     if (length(input$district) > 0 ) {
+<<<<<<< HEAD
       partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=comm_district >='", 
                                      input$district[1], "comm_district <='", input$district[2]), app_token = token)
+=======
+      #I think this is line is the reason my code is not working but I have tried various attempts to fix it but still have had no luck fixing it
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_district >= '", input$district[1],
+                             comm_district, input$district[2]), app_token = token)
+      # Your filters are WHERE statements, not part of the select statement. Dominic did this in his app. I wish you had reached out to him, or consulted his code a bit more.
+>>>>>>> 7622f9c94746f883cf557c5c276f0cea43319d58
     }
       # Allows for the slider input to be reactive
       
@@ -158,9 +168,16 @@ server <- function(input, output, session = session) {
     
     # Allows for the select input to be reactive
     if (length(input$boro) > 0 ) {
+<<<<<<< HEAD
       partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=comm_dist_boro >= '", 
                                      input$boro, "comm_dist_boro"), app_token = token)
       #partner <- subset(partner, boro %in% input$boro)
+=======
+      #Same comment about the reason my code is not working.
+      # You need to build ONE URL string, not multiple...
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro >= '", 
+                                     input$boro, comm_dist_boro), app_token = token)
+>>>>>>> 7622f9c94746f883cf557c5c276f0cea43319d58
     }
     
     partner <- select(partner,c("comm_district_boro", "comm_district", "ipv_fel_assault", "ipv_rape"))
@@ -171,8 +188,14 @@ server <- function(input, output, session = session) {
   #Reactive Function for Assaults Page (local input)
   partnerAssaults <- reactive({
     if (length(input$assaultcount) > 0 ) {
+<<<<<<< HEAD
       partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$where=ipv_fel_assault >= '", 
                                      input$assaultcount[1], "ipv_fel_assault<='", input$assaultcount[2]), app_token = token)
+=======
+      #Same comment about the reason my code is not working YOu should just PULL the data from before. Everything else about the app really should have remained the same
+      partner <- read.socrata(paste0("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=ipv_fel_assault >= '", 
+                                     input$assaultcount[1], ipv_fel_assault, input$assaultcount[2]), app_token = token)
+>>>>>>> 7622f9c94746f883cf557c5c276f0cea43319d58
     }
     
     #Allows for the slider input of felony assaults to be reactive for the boxplot
