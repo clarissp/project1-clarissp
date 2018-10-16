@@ -13,9 +13,9 @@ library(httr)
 
 pdf(NULL)
 
-#Imports the token 
 token <- jsonlite::fromJSON("token.json")$token
 
+<<<<<<< HEAD
 borosubset <- read.socrata("https://data.cityofnewyork.us/resource/ki38-k49c.json?$select=comm_dist_boro, comm_district, ipv_rape, ipv_fel_assault, ipv_dir", app_token = token)
 
 # Socrata's API works a bit differently from the WPRDC, they have something similar:
@@ -29,11 +29,13 @@ rape <- as.numeric(unique(borosubset$ipv_rape))
 
 remove(borosubset)
 
+=======
+>>>>>>> parent of 8dfbb39... Socrata error
 #Create variable for intimate partner violence data downloaded from NYC Open Data 
-#partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
-  #mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
-         #assaultincidents = trimws(as.numeric(IPV_Fel_Assault),"both")
-         #)
+partner.load <- read.csv("IntimatePartnerViolence.csv") %>%
+  mutate(boro = trimws(as.character(Comm_Dist_.Boro),"both"),
+         assaultincidents = trimws(as.numeric(IPV_Fel_Assault),"both")
+         )
 
 #Creates the header of the shiny dashboard 
 header <- dashboardHeader(title = "NYC Crime Dashboard",
